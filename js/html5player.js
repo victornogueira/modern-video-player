@@ -1,5 +1,5 @@
 /*
-   Lite HTML5 Video Player - v1.0 - 8/31/2014
+   Modern Video Player - v1.0 - 8/31/2014
    http://www.victornogueira.com/html5player
    
    Some rights reserved (cc) 2014 Victor Nogueira
