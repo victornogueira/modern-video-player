@@ -7,25 +7,21 @@
 ---------------------------------------------------------------------------------------*/
 
 (function() {
+	
+	/* Player
+	-----------------------------------------------------------------------------------*/	
+
 	jsPlayer = function ($media) {
 
 		// If the browser doesn't support the Fullscreen API, it will fallback to the native controls
 		var fullscreenIsEnabled = document.fullscreenEnabled || document.mozFullScreenEnabled || document.webkitFullscreenEnabled || document.msFullscreenEnabled;
 
 		if (fullscreenIsEnabled) {
-
-			/* Helpers
-			-----------------------------------------------------------------------------------*/
-
-			function getElemStyle(selector, property){
-			   return window.getComputedStyle(selector,null).getPropertyValue(property);
-			}
-
 								   
 			/* Options
 			-----------------------------------------------------------------------------------*/
-			
-			var defaultVolume       = 1; // From 0 to 1
+
+			var defaultVolume = 0; // From 0 to 1
 
 
 			/* Create player markup
@@ -46,23 +42,23 @@
 
 			// Create controls markup
 			var playerControls =
-            '<div class="video-player__controls js-player-controls">' +
-            	'<button class="video-player__play-pause ir bare-button js-player-play-pause">Play</button>' +
-            	'<div class="video-player__time-wrapper">' +
-            		'<div class="video-player__track video-player__time_track js-player-time-track">' +
-            			'<div class="video-player__loaded ir js-player-time-track-loaded" min="0" value="0"></div>' +
-            			'<button class="video-player__slider video-player__time-slider bare-button js-player-time-track-slider"></button>' +
-            		'</div>' +
-            		'<div class="video-player__timer js-player-timer">00:00</div>' +
-            	'</div>' +
-            	'<div class="video-player__volume js-player-volume">' +
-            		'<button class="video-player__volume-icon bare-button ir js-player-volume-icon">Mute</button>' +
-            		'<div class="video-player__track video-player__volume-track js-player-volume-track">' +
-            			'<button class="video-player__slider video-player__volume-slider bare-button js-player-volume-slider"></button>' +
-            		'</div>' +
-            	'</div>' +
-            	'<button class="video-player__fullscreen-icon ir bare-button js-fullscreen" href="#">Full Screen</button>' +
-            '</div>';
+			'<div class="video-player__controls js-player-controls">' +
+				'<button class="video-player__play-pause ir bare-button js-player-play-pause">Play</button>' +
+				'<div class="video-player__time-wrapper">' +
+					'<div class="video-player__track video-player__time-track js-player-time-track">' +
+						'<div class="video-player__loaded ir js-player-time-track-loaded" min="0" value="0"></div>' +
+						'<button class="video-player__slider video-player__time-slider bare-button js-player-time-track-slider"></button>' +
+					'</div>' +
+					'<div class="video-player__timer js-player-timer">00:00</div>' +
+				'</div>' +
+				'<div class="video-player__volume js-player-volume">' +
+					'<button class="video-player__volume-icon bare-button ir js-player-volume-icon">Mute</button>' +
+					'<div class="video-player__track video-player__volume-track js-player-volume-track">' +
+						'<button class="video-player__slider video-player__volume-slider bare-button js-player-volume-slider"></button>' +
+					'</div>' +
+				'</div>' +
+				'<button class="video-player__fullscreen-icon ir bare-button js-fullscreen" href="#">Full Screen</button>' +
+			'</div>';
 
 			// Append controls markup
 			$media.insertAdjacentHTML('afterend',playerControls);
@@ -82,9 +78,13 @@
 			var $timeLoadedBar      = $player.querySelector('.js-player-time-track-loaded');
 			var $timer              = $player.querySelector('.js-player-timer');
 			var $fullScreen         = $player.querySelector('.js-fullscreen');
+
 			var isFullScreen        = false;
 			var wasPlaying          = false;
-			
+			var bufferingDetected   = false;
+			var checkBufferInterval = 200;
+			var lastPlayPos         = 0;
+			var currentPlayPos      = 0;
 			var volumeTrackWidth    = $volumeTrack.getBoundingClientRect().width;
 			var seeking;
 			var mouseMoveTimeout;
@@ -207,6 +207,28 @@
 				$timeLoadedBar.setAttribute('max',Math.floor(getTotalTime()));
 			}
 
+			function checkBuffering() {
+				currentPlayPos = $media.currentTime;
+				// Checking time offset, e.g. 1 / 50ms = 0.02
+				var offset = 1 / checkBufferInterval;
+
+				// We should check if the user haven't paused the video...
+				if (!$media.paused) {
+					if (!bufferingDetected && currentPlayPos < lastPlayPos + offset) {
+						bufferingDetected = true;
+
+						$timeTrack.classList.add('video-player__time-track--stalled');
+					}
+					if (
+						bufferingDetected && currentPlayPos > lastPlayPos + offset) {
+						bufferingDetected = false;
+
+						$timeTrack.classList.remove('video-player__time-track--stalled');
+					}
+				}
+				
+				lastPlayPos = currentPlayPos;
+			}
 
 			// Timer
 
@@ -232,8 +254,8 @@
 			function formatTime(time) {
 				if(time.hours) {
 					return padZeros(time.hours) + ':'+
-					       padZeros(time.minutes) + ':' +
-					       padZeros(time.seconds);
+						   padZeros(time.minutes) + ':' +
+						   padZeros(time.seconds);
 				}
 				return padZeros(time.minutes) + ':' + padZeros(time.seconds);
 			}
@@ -390,7 +412,9 @@
 				updateBufferTrack();
 			},1000);
 
-				
+			// Check if video is not playing because it's stopped buffering
+			setInterval(checkBuffering, checkBufferInterval);
+	
 			// Dragging for time bar
 			$timeTrack.addEventListener('mousedown',function(e) {	
 				if (e.which == 1) {
@@ -469,6 +493,8 @@
 			$media.addEventListener('contextmenu', function(e) {
 				e.preventDefault();
 			}, false);
-		}
-	}	
+		}   
+
+		return $media;
+	}
 }());

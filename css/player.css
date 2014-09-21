@@ -143,11 +143,40 @@ button {
 					border-radius: 2px;
 				}
 
-			.video-player__time_track {
+			.video-player__time-track {
+				margin-right: .75em;
 				-webkit-box-flex: 1;
 			        -webkit-flex: 1 0 auto;
 			                flex: 1 0 auto;
-				margin-right: .75em;
+			}
+
+			@-webkit-keyframes loading {
+			  from {
+			  	background-position: 0 0;
+			  }
+
+			  to {
+			  	background-position: 6px 0;
+			  }
+			}
+
+			@keyframes loading {
+			  from {
+			  	background-position: 0 0;
+			  }
+
+			  to {
+			  	background-position: 6px 0;
+			  }
+			}
+
+			.video-player__time-track--stalled {
+				/* Generated with Patternify: http://ptrn.it/1pnuGnX */
+				background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAA\
+				                       GCAYAAADgzO9IAAAALElEQVQIW2NkYGD4D8SMQAwDID6KAIgPFkSX\
+				                       gAuCNMCMQBGE6cAQRJdAcQAAYaEIBC9zxUgAAAAASUVORK5CYII=');
+				-webkit-animation: loading .2s steps(6) infinite;
+				        animation: loading .2s steps(6) infinite;
 			}
 
 				.video-player__loaded {
@@ -157,6 +186,7 @@ button {
 					width: 0;
 					height: 100%;
 					background: rgba(255,255,255,.25);
+					border-radius: 2px;
 				}
 
 			.video-player__timer {
