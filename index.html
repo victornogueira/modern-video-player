@@ -5,6 +5,7 @@
 		<meta name="author" content="Victor Nogueira" /> 
 		<meta name="description" content="HTML5 Video Player" /> 
 		<meta name="keywords" content="video, player, html5, standards, css3, query, javascript" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 		
 		<link rel="copyright" href="http://creativecommons.org/licenses/by-sa/3.0/" />		
@@ -15,18 +16,18 @@
 	</head>
 	<body>
 		<div class="wrapper">
-			<video controls="controls" class="video-player__video js-player-video">
-				<source src="videos/glass.webm"  type="video/webm" />
-				<source src="videos/glass.mp4" />		
+			<video controls="controls" class="video-player__video js-player-video" poster="images/poster.jpg">
+				<source src="videos/fully-flared.mp4" />		
+				<source src="videos/fully-flared.webm"  type="video/webm" />
 			</video>
 		</div>
 		<script src="js/html5player.js"></script>
 		<script>
 
-			$media = document.querySelectorAll('.js-player-video');
+			$myVideos = document.querySelectorAll('video');
 
-			for (i = 0; i < $media.length; i++) {
-				jsPlayer( $media[i] );
+			for (i = 0; i < $myVideos.length; i++) {
+				jsPlayer($myVideos[i], {defaultVolume: .5});
 			}
 
 		</script>

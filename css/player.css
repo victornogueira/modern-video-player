@@ -81,7 +81,8 @@ button {
 		bottom: 0;
 		left: 0;
 		width: 100%;
-		height: 3.5em;
+		height: 4em;
+		padding: 0 .5em;
 		background: rgba(0,0,0,.55);
 		opacity: 0;
 		visibility: hidden;
@@ -90,6 +91,7 @@ button {
 	}
 
 	.video-player--first-play .video-player__controls,
+	.video-player--show-controls .video-player__controls,
 	.video-player:hover .video-player__controls {
 		opacity: 1;
 	}
@@ -126,10 +128,10 @@ button {
 
 			.video-player__track {
 				position: relative;
-				height: .625em;
+				height: .8em;
 				background: rgba(255,255,255,.25);
 				cursor: pointer;
-				border-radius: 2px;
+				border-radius: 1px;
 				overflow: hidden;
 			}
 
@@ -140,7 +142,7 @@ button {
 					width: 0;
 					height: 100%;
 					background: #17ccb0;
-					border-radius: 2px;
+					border-radius: 1px;
 				}
 
 			.video-player__time-track {
@@ -186,7 +188,7 @@ button {
 					width: 0;
 					height: 100%;
 					background: rgba(255,255,255,.25);
-					border-radius: 2px;
+					border-radius: 1px;
 				}
 
 			.video-player__timer {
