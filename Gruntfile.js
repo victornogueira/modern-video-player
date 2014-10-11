@@ -14,7 +14,6 @@ module.exports = function(grunt) {
                 files: [
                   {expand: true, src: ['*.{html,ico}'], dest: 'build/', filter: 'isFile'},
                   {expand: true, src: ['fonts/**'], dest: 'build/'},
-                  {expand: true, src: ['videos/**'], dest: 'build/'},
                 ]
             }
         },

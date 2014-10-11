@@ -11,9 +11,9 @@
 	jsPlayer = function ($media, options) {
 
 		var	fullscreenIsEnabled = document.fullscreenEnabled ||
-	                          document.mozFullScreenEnabled ||
-			                  document.webkitFullscreenEnabled ||
-			                  document.msFullscreenEnabled;
+	                              document.mozFullScreenEnabled ||
+			                      document.webkitFullscreenEnabled ||
+			                      document.msFullscreenEnabled;
 
 		if (fullscreenIsEnabled) {
 			
@@ -23,10 +23,10 @@
 			// Default settings
 			var settings = {
 				defaultVolume : 1
-			}
+			};
 
 			// Copy properties of 'options' to 'defaults', overwriting existing ones.
-			for (prop in options) {
+			for (var prop in options) {
 		        if (options.hasOwnProperty(prop)) {
 		            settings[prop] = options[prop];
 		        }
@@ -39,7 +39,8 @@
 			var $player, $controls, $playPause, $volume, $volumeTrack, $volumeSlider, $volumeIcon,
 			    $timeTrack, $timeSlider, $timeLoadedBar, $timer, $fullScreen, videoWidth,
 			    videoHeight, isFullScreen, wasPlaying, bufferingDetected, checkBufferInterval,
-			    lastPlayPos, currentPlayPos, fullscreenIsEnabled, seeking, mouseMoveTimeout;
+			    lastPlayPos, currentPlayPos, seeking, mouseMoveTimeout, mouseX, mouseY,
+			    oldVolumeLevel;
 
 
 			/* Core Functions
@@ -199,7 +200,7 @@
 			}
 
 			function updateTimeTrack() {		
-				if ($media.ended == false) {
+				if ($media.ended === false) {
 					$timeSlider.style.width = calcTimeSliderWidth() + '%';
 					
 					$timer.innerHTML = formatTime(secondsToTime(getCurrTime()));
@@ -286,7 +287,7 @@
 			}
 			
 			function padZeros(number) {
-				return (number < 10 ? '0' : '') + number
+				return (number < 10 ? '0' : '') + number;
 			}
 			
 			function formatTime(time) {
@@ -325,7 +326,7 @@
 				var volumeLevelWidth = $volumeTrack.getBoundingClientRect().width;
 				var calcVolumeLevel = getVolumeSliderWidth()/volumeLevelWidth;
 				
-				if (calcVolumeLevel == 0) {
+				if (calcVolumeLevel === 0) {
 					$volumeIcon.classList.add('video-player__volume-icon--mute');
 				} else {
 					$volumeIcon.classList.remove('video-player__volume-icon--mute');
@@ -369,7 +370,7 @@
 			}
 
 			function fullScreenChange() {
-				if (isFullScreen == true) {
+				if (isFullScreen === true) {
 					$fullScreen.classList.remove('video-player__fullscreen-icon--fullscreen');
 
 					if (videoWidth > 0) {
@@ -442,7 +443,7 @@
 			
 			// Dragging for volume bar
 			$volumeTrack.addEventListener('mousedown', function(e) {
-				if (e.which == 1) {
+				if (e.which === 1) {
 				   seeking = setInterval(function(){
 						trackClick($volumeTrack, $volumeSlider);
 						updateVolume();
@@ -470,7 +471,7 @@
 
 			// Dragging for time bar
 			$timeTrack.addEventListener('mousedown',function(e) {	
-				if (e.which == 1) {
+				if (e.which === 1) {
 					timeSeeking();
 					
 					seeking = setInterval(function(){
@@ -550,5 +551,5 @@
 				e.preventDefault();
 			}, false);
 		}
-	}
+	};
 }());
