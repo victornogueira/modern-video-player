@@ -13,7 +13,8 @@ module.exports = function(grunt) {
             dist: {
                 files: [
                   {expand: true, src: ['*.{html,ico}'], dest: 'build/', filter: 'isFile'},
-                  {expand: true, src: ['fonts/**'], dest: 'build/'},
+                  {expand: true, src: ['images/*.svg'], dest: 'build/', filter: 'isFile'},
+                  {expand: true, src: ['fonts/**'], dest: 'build/'}
                 ]
             }
         },
@@ -73,7 +74,7 @@ module.exports = function(grunt) {
                 files: [{
                     expand: true,
                     cwd: 'images/',
-                    src: ['**/*.{png,jpg,gif,svg}'],
+                    src: ['**/*.{png,jpg,gif}'],
                     dest: 'build/images/'
                 }]
             }
