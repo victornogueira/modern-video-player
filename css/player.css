@@ -43,9 +43,8 @@ button {
 }
 
 .wrapper {
-	max-width: 1300px;
-	margin: 0 auto;
-	padding: 2em;
+	width: 75em; /* 1200px */
+	margin: 4em auto;
 }
 
 .video-player {
