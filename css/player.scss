@@ -39,7 +39,7 @@ body {
 
 /* The larger the value the larger the UI */
 $baseUIScale: 3;
-$baseUIScaleMobile: 2.5;
+$baseUIScaleMobile: 3;
 
 $videoRadius: 3px;
 $uiRadius: 5px;
@@ -64,6 +64,7 @@ button {
 .video-player__fullscreen-icon {
 	background: url(../images/controls.svg) no-repeat;
 	background-size: 100% auto;
+	-webkit-tap-highlight-color: transparent;
 
 	@include bp(bp-tablet) {
 		background-size: 100% auto;
@@ -123,10 +124,12 @@ button {
 	.video-player--show-controls .video-player__controls,
 	.video-player:hover .video-player__controls {
 		opacity: 1;
+		visibility: visible;
 	}
 
 	.video-player--hide-controls:hover .video-player__controls {
 		opacity: 0;
+		visibility: hidden;
 	}
 
 		.video-player__play-pause {
@@ -159,21 +162,36 @@ button {
 
 			.video-player__track {
 				position: relative;
-				height: .8em;
-				background: rgba(255,255,255,.25);
+				height: $baseUIScaleMobile + em;
 				cursor: pointer;
-				border-radius: $uiRadius;
 				overflow: hidden;
+
+				@include bp(bp-tablet) {
+					height: $baseUIScale + em
+				}
+			}
+
+			.video-player__track:after {
+				content: " ";
+				position: absolute;
+				top: 50%;
+				left: 0;
+				width: 100%;
+				height: .8em;
+				margin-top: -.4em;
+				background: rgba(255,255,255,.25);
+				border-radius: $uiRadius;
 			}
 
 				.video-player__slider {
 					position: absolute;
-					top: 0;
+					top: 50%;
 					left: 0;
-					width: 0;
-					height: 100%;
+					height: .8em;
+					margin-top: -.4em;
 					background: #17ccb0;
 					border-radius: $uiRadius;
+					z-index: 10;
 				}
 
 			.video-player__time-track {
@@ -191,17 +209,18 @@ button {
 			  }
 			}
 
-			.video-player__time-track--stalled {
+			.video-player__time-track--stalled:after {
 				@include base64($bufferingPattern);
 				animation: loading .2s steps(6) infinite;
 			}
 
 				.video-player__loaded {
 					position: absolute;
-					top: 0;
+					top: 50%;
 					left: 0;
 					width: 0;
-					height: 100%;
+					height: .8em;
+					margin-top: -.4em;
 					background: rgba(255,255,255,.25);
 					border-radius: $uiRadius;
 				}
@@ -215,15 +234,15 @@ button {
 
 		.video-player__volume {
 			display: flex;
-		    visibility: hidden;
 			width: 0;
 			margin-right: .5em;
+			visibility: hidden;
 			align-items: center;
+		}
 
-			@include bp(bp-tablet) {
-				visibility: visible;
-				width: $baseUIScale * 3 + em;
-			}
+		.video-player__volume--available {
+			visibility: visible;
+			width:  9em;
 		}
 
 			.video-player__volume-icon {
@@ -238,7 +257,11 @@ button {
 
 			.video-player__volume-track {
 				flex: 1 0 auto;
-				width: 5em;
+				width: $baseUIScale * 2;
+			}
+
+			.video-player__volume-slider {
+				width: 100%;
 			}
 		.video-player__fullscreen-icon {
 			width: $baseUIScaleMobile + em;

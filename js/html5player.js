@@ -22,7 +22,8 @@
 
 			// Default settings
 			var settings = {
-				defaultVolume : 1
+				defaultVolume: 1,
+				bpTablet: 600
 			};
 
 			// Copy properties of 'options' to 'defaults', overwriting existing ones.
@@ -39,8 +40,8 @@
 			var $player, $controls, $playPause, $volume, $volumeTrack, $volumeSlider, $volumeIcon,
 			    $timeTrack, $timeSlider, $timeLoadedBar, $timer, $fullScreen, videoWidth,
 			    videoHeight, isFullScreen, wasPlaying, bufferingDetected, checkBufferInterval,
-			    lastPlayPos, currentPlayPos, seeking, mouseMoveTimeout, mouseX, mouseY,
-			    oldVolumeLevel;
+			    lastPlayPos, currentPlayPos, mouseMoveTimeout, pageX, pageY, touch, isSeeking,
+			    scrubbingInterval, seekingInterval, isChangingVolume, oldVolumeLevel;
 
 
 			/* Core Functions
@@ -100,12 +101,29 @@
 				$fullScreen         = $player.querySelector('.js-fullscreen');
 				videoWidth          = $media.getAttribute('width');
 				videoHeight         = $media.getAttribute('height');
+				isSeeking           = false;
 				isFullScreen        = false;
 				wasPlaying          = false;
 				bufferingDetected   = false;
-				checkBufferInterval = 500;
+				checkBufferInterval = 1500;
 				lastPlayPos         = 0;
 				currentPlayPos      = 0;
+
+				// Removes default controls
+				$media.removeAttribute('controls');
+
+				// If video tag has dimensions, reflect that on the wrapper
+				if (videoWidth > 0) {
+					$player.style.width = videoWidth + 'px';
+				}
+
+				$media.volume = .123; // Arbitrary number...
+
+				if ($media.volume === .123 && window.innerWidth > settings.bpTablet) { // ...to check if volume is changeable...
+					// ...if so, reveal volume controls.
+					$volume.classList.add('video-player__volume--available');
+					volumeReset(); // Sets default volume
+				}
 			}
 
 
@@ -115,17 +133,7 @@
 				// Creates player markup
 				createPlayer();
 
-				// Removes default controls
-				$media.removeAttribute('controls');
-
-				// Show custom controls
-				if (videoWidth > 0) {
-					$player.style.width = videoWidth + 'px';
-				}
-				$controls.style.visibility = 'visible';
-
-				// Resets volume
-				volumeReset();
+				
 			}
 
 			
@@ -154,10 +162,21 @@
 			}
 
 
-			// Track click
+			// Page X/Y and Track click
 
-			function trackClick(track, slider) {
-				var relativeX    = mouseX - track.getBoundingClientRect().left;
+			function mouseXY(e) {
+				pageX = e.pageX;
+				pageY = e.pageY;
+			}
+
+			function touchXY(e) {
+				touch = e.targetTouches[0];
+				pageX = touch.pageX;
+				pageY = touch.pageY;
+			}
+
+			function trackScrub(track, slider) {
+				var relativeX    = pageX - track.getBoundingClientRect().left;
 				var relativeXPct = relativeX / track.getBoundingClientRect().width * 100
 				
 				if (relativeXPct >= 100) {
@@ -212,9 +231,45 @@
 				}
 			}
 
-			function timeSeeking() {
-				trackClick($timeTrack, $timeSlider);
+			function timeScrubbing() {
+
+				isSeeking = true;
+				
+				if ($playPause.classList.contains('video-player__play-pause--playing')) {
+					pause();
+					wasPlaying = true;
+				}
+
+				scrubbingInterval = setInterval(function(){
+					trackScrub($timeTrack, $timeSlider);
+				},100);
+
+				seekingInterval = setInterval(function(){
+					$media.currentTime = calcCurrTime();
+				},1000);
+
+				$player.classList.add('video-player--show-controls');
+			}
+
+			function timeScrubbingEnd() {
+				trackScrub($timeTrack, $timeSlider);
 				$media.currentTime = calcCurrTime();
+
+				clearInterval(seekingInterval);
+				clearInterval(scrubbingInterval);
+
+				if (wasPlaying) {
+					play();
+					wasPlaying = false;
+				}
+
+				// If track is clicked before first play, jump to point and play
+				if ($player.classList.contains('video-player--first-play')) {
+					playPause();
+				}
+
+				$player.classList.remove('video-player--show-controls');
+				isSeeking = false;
 			}
 
 
@@ -244,13 +299,13 @@
 			}
 
 			function checkBuffering() {
+				var offset = checkBufferInterval/1000;
+
 				currentPlayPos = $media.currentTime;
-				// Checking time offset, e.g. 1 / 50ms = 0.02
-				var offset = 1 / checkBufferInterval;
 
 				// We should check if the user haven't paused the video...
 				if (!$media.paused) {
-					if (!bufferingDetected && currentPlayPos < lastPlayPos + offset) {
+					if (!bufferingDetected && currentPlayPos <= lastPlayPos + offset) {
 						bufferingDetected = true;
 
 						$player.classList.remove('video-player--hide-controls');
@@ -302,8 +357,11 @@
 
 			// Volume
 
-			function volumeReset() {		
-				$volumeSlider.style.width = settings.defaultVolume * 100 + '%';
+			function volumeReset() {
+				if (window.innerWidth >= settings.bpTablet) {
+					$volumeSlider.style.width = settings.defaultVolume * 100 + '%';	
+				}
+				
 				updateVolume();
 			}
 			
@@ -332,6 +390,22 @@
 					$volumeIcon.classList.remove('video-player__volume-icon--mute');
 				}	
 				$media.volume = calcVolumeLevel;
+			}
+
+			function volumeScrubbing() {
+
+				isChangingVolume = true;
+
+				scrubbingInterval = setInterval(function(){
+					trackScrub($volumeTrack, $volumeSlider);
+					updateVolume();
+				},50);
+			}
+
+			function volumeScrubbingEnd() {
+				clearInterval(scrubbingInterval);
+
+				isChangingVolume = false;
 			}
 
 
@@ -399,6 +473,32 @@
 				}
 			}
 
+			function isMouseIdle() {
+				if (!$player.classList.contains('video-player--first-play')) {
+					if (mouseMoveTimeout !== null) {
+						clearTimeout(mouseMoveTimeout);
+						
+						$player.classList.remove('video-player--hide-controls');
+						$player.style.cursor = '';
+					}
+
+					mouseMoveTimeout = setTimeout(function() {
+						mouseMoveTimeout = null;
+						
+						if (!$timeTrack.classList.contains('video-player__time-track--stalled')
+							&& !isSeeking) {
+							
+							$player.classList.add('video-player--hide-controls');	
+
+							if (isFullScreen) {
+								$player.style.cursor = 'none';
+							}
+						}
+						
+					}, 3000);
+				}
+			}
+
 
 			/* Init
 			-----------------------------------------------------------------------------------*/
@@ -409,25 +509,24 @@
 			/* Play / Pause
 			-----------------------------------------------------------------------------------*/
 
-			$playPause.addEventListener('click', function() {
+			$playPause.addEventListener('click', function(e) {
 				playPause();
 
-				return false;
-			});
-			
-			$media.addEventListener('click', function() {	
-				playPause();
-
-				return false;
+				e.preventDefault();
 			});
 
-				
-			/* Dragging for time and volume bars
+
+			/* Get X and Y position for mouse/touch (used for time and volume scrubbing)
 			-----------------------------------------------------------------------------------*/
-				
-			window.addEventListener('mousemove',function(e) {
-				mouseX = e.pageX;
-				mouseY = e.pageY;
+
+			window.addEventListener('mousemove', function(e) {
+				mouseXY(e);
+			});
+
+			$controls.addEventListener('touchmove',function(e) {
+				touchXY(e);
+
+				e.preventDefault();
 			});
 
 				
@@ -435,25 +534,36 @@
 			-----------------------------------------------------------------------------------*/
 			
 			// Mute Button	
-			$volumeIcon.addEventListener('click', function() {
+			$volumeIcon.addEventListener('click', function(e) {
 				mute();
 				
-				return false;
-			});
-			
-			// Dragging for volume bar
-			$volumeTrack.addEventListener('mousedown', function(e) {
-				if (e.which === 1) {
-				   seeking = setInterval(function(){
-						trackClick($volumeTrack, $volumeSlider);
-						updateVolume();
-					},50);
-				}
-				return false;
+				e.preventDefault();
 			});
 
-			document.addEventListener('mouseup',function(){
-				clearInterval(seeking);
+			$volumeTrack.addEventListener('mousedown', function(e) {
+				if (e.which === 1) {
+					volumeScrubbing();
+				}
+
+				e.preventDefault();
+			});
+
+			$volumeTrack.addEventListener('touchstart', function(e) {
+				volumeScrubbing();
+
+				e.preventDefault();
+			});
+
+			document.addEventListener('mouseup',function() {
+				if (isChangingVolume) {
+					volumeScrubbingEnd();
+				}
+			});
+
+			document.addEventListener('touchend', function() {
+				if (isChangingVolume) {
+					volumeScrubbingEnd();
+				}
 			});
 			
 			
@@ -462,41 +572,40 @@
 
 			// Updates timer and buffer
 			setInterval(function(){
-				updateTimeTrack();
-				updateBufferTrack();
+				if (!isSeeking) {
+					updateTimeTrack();
+					updateBufferTrack();
+				}
 			},1000);
 
 			// Check if video is not playing because it's stopped buffering
-			setInterval(checkBuffering, checkBufferInterval);
-
-			// Dragging for time bar
-			$timeTrack.addEventListener('mousedown',function(e) {	
-				if (e.which === 1) {
-					timeSeeking();
-					
-					seeking = setInterval(function(){
-						timeSeeking();
-					},50);
-
-					if ($playPause.classList.contains('video-player__play-pause--playing')) {
-						pause();
-						wasPlaying = true;
-					}
-
-					// If track is clicked before first play, jump to point and play
-					if ($player.classList.contains('video-player--first-play')) {
-						playPause();
-					}
+			setInterval(function() {
+				if(!isSeeking) {
+					checkBuffering();	
 				}
-				return false;
+			}, checkBufferInterval);
+
+			$timeTrack.addEventListener('mousedown', function(e) {	
+				if (e.which === 1) {
+					timeScrubbing();
+				}
 			});
 
-			document.addEventListener('mouseup',function(){
-				clearInterval(seeking);
-				
-				if (wasPlaying) {
-					play();
-					wasPlaying = false;
+			$timeTrack.addEventListener('touchstart', function(e) {	
+				timeScrubbing();
+
+				e.preventDefault();
+			});
+
+			document.addEventListener('mouseup', function() {
+				if (isSeeking) {
+					timeScrubbingEnd();
+				}
+			});
+
+			document.addEventListener('touchend', function() {
+				if (isSeeking) {
+					timeScrubbingEnd();
 				}
 			});
 
@@ -504,10 +613,10 @@
 			/* Full screen
 			-----------------------------------------------------------------------------------*/
 
-			$fullScreen.addEventListener('click',function(){
+			$fullScreen.addEventListener('click',function(e){
 				toggleFullScreen();
 
-				return false;
+				e.preventDefault();
 			});
 
 			document.addEventListener("fullscreenchange", fullScreenChange);
@@ -520,36 +629,17 @@
 			-----------------------------------------------------------------------------------*/
 
 			$player.addEventListener('mousemove', function() {
-				if (!$player.classList.contains('video-player--first-play')) {
-					if (mouseMoveTimeout !== null) {
-						clearTimeout(mouseMoveTimeout);
-						
-						$player.classList.remove('video-player--hide-controls');
-						$player.style.cursor = '';
-					}
-
-					mouseMoveTimeout = setTimeout(function() {
-						mouseMoveTimeout = null;
-						
-						if (!$timeTrack.classList.contains('video-player__time-track--stalled')) {
-							$player.classList.add('video-player--hide-controls');	
-
-							if (isFullScreen) {
-								$player.style.cursor = 'none';
-							}
-						}
-						
-					}, 3000);
-				}
+				isMouseIdle();
 			});
 
 
 			/* Prevent right click on video
 			-----------------------------------------------------------------------------------*/
 
-			$media.addEventListener('contextmenu', function(e) {
-				e.preventDefault();
-			}, false);
+		// 	$media.addEventListener('contextmenu', function(e) {
+		// 		e.preventDefault();
+		// 	}, false);
 		}
+
 	};
 }());

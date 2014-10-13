@@ -14,7 +14,8 @@ module.exports = function(grunt) {
                 files: [
                   {expand: true, src: ['*.{html,ico}'], dest: 'build/', filter: 'isFile'},
                   {expand: true, src: ['images/*.svg'], dest: 'build/', filter: 'isFile'},
-                  {expand: true, src: ['fonts/**'], dest: 'build/'}
+                  {expand: true, src: ['videos/*.{mp4,m4v,webm}'], dest: 'build/', filter: 'isFile'},
+                  {expand: true, src: ['fonts/**'], dest: 'build/'},
                 ]
             }
         },
@@ -50,6 +51,7 @@ module.exports = function(grunt) {
                 dest: 'build/js/html5player.min.js'
             }
         },
+        
         sass: {
             dist: {
                 options: {
