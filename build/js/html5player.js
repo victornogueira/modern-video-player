@@ -9,7 +9,6 @@
 (function() {
 
 	jsPlayer = function ($media, options) {
-
 		var	fullscreenIsEnabled = document.fullscreenEnabled ||
 	                              document.mozFullScreenEnabled ||
 			                      document.webkitFullscreenEnabled ||
@@ -23,7 +22,8 @@
 			// Default settings
 			var settings = {
 				defaultVolume: 1,
-				bpTablet: 600
+				bpTablet: 600,
+				idleTimeout: 5000
 			};
 
 			// Copy properties of 'options' to 'defaults', overwriting existing ones.
@@ -38,7 +38,7 @@
 			-----------------------------------------------------------------------------------*/
 
 			var $player, $controls, $playPause, $volume, $volumeTrack, $volumeSlider, $volumeIcon,
-			    $timeTrack, $timeSlider, $timeLoadedBar, $timer, $fullScreen, videoWidth,
+			    $timeTrack, $timeSlider, $timeLoadedBar, $timer, $fullScreen, $html, videoWidth,
 			    videoHeight, isFullScreen, wasPlaying, bufferingDetected, checkBufferInterval,
 			    lastPlayPos, currentPlayPos, mouseMoveTimeout, pageX, pageY, touch, isSeeking,
 			    scrubbingInterval, seekingInterval, isChangingVolume, oldVolumeLevel;
@@ -88,6 +88,7 @@
 				$media.insertAdjacentHTML('afterend',playerControls);
 
 				// Redefine core vars
+				$html               = document.querySelector('html');
 				$controls           = $player.querySelector('.js-player-controls');
 				$playPause          = $player.querySelector('.js-player-play-pause');
 				$volume             = $player.querySelector('.js-player-volume');
@@ -117,12 +118,17 @@
 					$player.style.width = videoWidth + 'px';
 				}
 
-				$media.volume = .123; // Arbitrary number...
+				// First we need to asign an arbitrary value for volume.
+				$media.volume = .123;
 
-				if ($media.volume === .123 && window.innerWidth > settings.bpTablet) { // ...to check if volume is changeable...
-					// ...if so, reveal volume controls.
+				// Then we check if value is changeable
+				// and if there's enough room for volume controls.
+				if ($media.volume === .123 &&
+				    window.innerWidth > settings.bpTablet) { 
+					// If so, reveal volume controls.
 					$volume.classList.add('video-player__volume--available');
-					volumeReset(); // Sets default volume
+					// Sets default volume
+					volumeReset();
 				}
 			}
 
@@ -131,9 +137,7 @@
 
 			function init() {
 				// Creates player markup
-				createPlayer();
-
-				
+				createPlayer();		
 			}
 
 			
@@ -268,7 +272,10 @@
 					playPause();
 				}
 
-				$player.classList.remove('video-player--show-controls');
+				setTimeout(function(){
+					$player.classList.remove('video-player--show-controls')
+				},1000);
+				
 				isSeeking = false;
 			}
 
@@ -495,8 +502,19 @@
 							}
 						}
 						
-					}, 3000);
+					}, settings.idleTimeout);
 				}
+			}
+
+			function isMouseAvailable(e) {
+				if (e.type === 'mousemove') {
+					$html.classList.add('has-mouse');
+				} else if (e.type === 'touchstart') {
+					$html.classList.remove('has-mouse');
+				}
+
+				window.removeEventListener('mousemove', isMouseAvailable, false);
+				window.removeEventListener('touchstart', isMouseAvailable, false);
 			}
 
 
@@ -609,11 +627,19 @@
 				}
 			});
 
+			$media.addEventListener('touchstart', function() {
+				if (!$player.classList.contains('video-player--show-controls')) {
+					$player.classList.add('video-player--show-controls')
+				} else {
+					$player.classList.remove('video-player--show-controls')
+				}
+			});
+
 
 			/* Full screen
 			-----------------------------------------------------------------------------------*/
 
-			$fullScreen.addEventListener('click',function(e){
+			$fullScreen.addEventListener('click', function(e) {
 				toggleFullScreen();
 
 				e.preventDefault();
@@ -636,10 +662,16 @@
 			/* Prevent right click on video
 			-----------------------------------------------------------------------------------*/
 
-		// 	$media.addEventListener('contextmenu', function(e) {
-		// 		e.preventDefault();
-		// 	}, false);
-		}
+			$media.addEventListener('contextmenu', function(e) {
+				e.preventDefault();
+			}, false);
 
+
+			/* Has mouse?
+			-----------------------------------------------------------------------------------*/
+
+			window.addEventListener('mousemove', isMouseAvailable, false);
+			window.addEventListener('touchstart', isMouseAvailable, false);
+		}
 	};
 }());

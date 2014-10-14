@@ -110,7 +110,7 @@ button {
 		padding: 0 ($baseUIScaleMobile/12 + em);
 		background: rgba(0,0,0,.55);
 		opacity: 0;
-		visibility: hidden;
+		pointer-events: none;
 		transition: all ease-out .3s;
 		justify-content: center;
 
@@ -122,14 +122,14 @@ button {
 
 	.video-player--first-play .video-player__controls,
 	.video-player--show-controls .video-player__controls,
-	.video-player:hover .video-player__controls {
+	.has-mouse .video-player:hover .video-player__controls {
 		opacity: 1;
-		visibility: visible;
+		pointer-events: auto;
 	}
 
-	.video-player--hide-controls:hover .video-player__controls {
+	.has-mouse .video-player--hide-controls:hover .video-player__controls {
 		opacity: 0;
-		visibility: hidden;
+		pointer-events: none;
 	}
 
 		.video-player__play-pause {
