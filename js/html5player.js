@@ -6,6 +6,8 @@
    http://creativecommons.org/licenses/by-sa/3.0/
 -----------------------------------------------------------------------------------------------*/
 
+var jsPlayer;
+
 (function() {
 
 	jsPlayer = function ($media, options) {
@@ -119,11 +121,11 @@
 				}
 
 				// First we need to asign an arbitrary value for volume.
-				$media.volume = .123;
+				$media.volume = 0.123;
 
 				// Then we check if value is changeable
 				// and if there's enough room for volume controls.
-				if ($media.volume === .123 &&
+				if ($media.volume === 0.123 &&
 				    window.innerWidth > settings.bpTablet) { 
 					// If so, reveal volume controls.
 					$volume.classList.add('video-player__volume--available');
@@ -181,7 +183,7 @@
 
 			function trackScrub(track, slider) {
 				var relativeX    = pageX - track.getBoundingClientRect().left;
-				var relativeXPct = relativeX / track.getBoundingClientRect().width * 100
+				var relativeXPct = relativeX / track.getBoundingClientRect().width * 100;
 				
 				if (relativeXPct >= 100) {
 					relativeXPct = 100;
@@ -273,9 +275,9 @@
 				}
 
 				setTimeout(function(){
-					$player.classList.remove('video-player--show-controls')
+					$player.classList.remove('video-player--show-controls');
 				},1000);
-				
+
 				isSeeking = false;
 			}
 
@@ -353,7 +355,7 @@
 			}
 			
 			function formatTime(time) {
-				if(time.hours) {
+				if (time.hours) {
 					return padZeros(time.hours) + ':'+
 						   padZeros(time.minutes) + ':' +
 						   padZeros(time.seconds);
@@ -492,8 +494,8 @@
 					mouseMoveTimeout = setTimeout(function() {
 						mouseMoveTimeout = null;
 						
-						if (!$timeTrack.classList.contains('video-player__time-track--stalled')
-							&& !isSeeking) {
+						if (!$timeTrack.classList.contains('video-player__time-track--stalled') &&
+							!isSeeking) {
 							
 							$player.classList.add('video-player--hide-controls');	
 
@@ -598,7 +600,7 @@
 
 			// Check if video is not playing because it's stopped buffering
 			setInterval(function() {
-				if(!isSeeking) {
+				if (!isSeeking) {
 					checkBuffering();	
 				}
 			}, checkBufferInterval);
@@ -629,9 +631,9 @@
 
 			$media.addEventListener('touchstart', function() {
 				if (!$player.classList.contains('video-player--show-controls')) {
-					$player.classList.add('video-player--show-controls')
+					$player.classList.add('video-player--show-controls');
 				} else {
-					$player.classList.remove('video-player--show-controls')
+					$player.classList.remove('video-player--show-controls');
 				}
 			});
 
