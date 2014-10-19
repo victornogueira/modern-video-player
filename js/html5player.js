@@ -108,7 +108,7 @@ var jsPlayer;
 				isFullScreen        = false;
 				wasPlaying          = false;
 				bufferingDetected   = false;
-				checkBufferInterval = 1500;
+				checkBufferInterval = 500;
 				lastPlayPos         = 0;
 				currentPlayPos      = 0;
 
@@ -308,21 +308,20 @@ var jsPlayer;
 			}
 
 			function checkBuffering() {
-				var offset = checkBufferInterval/1000;
-
 				currentPlayPos = $media.currentTime;
+
+				var bufferOffset = 1 / checkBufferInterval;
 
 				// We should check if the user haven't paused the video...
 				if (!$media.paused) {
-					if (!bufferingDetected && currentPlayPos <= lastPlayPos + offset) {
+					if (!bufferingDetected && currentPlayPos <= (lastPlayPos + bufferOffset)) {
 						bufferingDetected = true;
 
 						$player.classList.remove('video-player--hide-controls');
 						$timeTrack.classList.add('video-player__time-track--stalled');
 						$player.classList.add('video-player--show-controls');
 					}
-					if (
-						bufferingDetected && currentPlayPos > lastPlayPos + offset) {
+					if (bufferingDetected && currentPlayPos > (lastPlayPos + bufferOffset)) {
 						bufferingDetected = false;
 
 						$timeTrack.classList.remove('video-player__time-track--stalled');
@@ -508,17 +507,6 @@ var jsPlayer;
 				}
 			}
 
-			function isMouseAvailable(e) {
-				if (e.type === 'mousemove') {
-					$html.classList.add('has-mouse');
-				} else if (e.type === 'touchstart') {
-					$html.classList.remove('has-mouse');
-				}
-
-				window.removeEventListener('mousemove', isMouseAvailable, false);
-				window.removeEventListener('touchstart', isMouseAvailable, false);
-			}
-
 
 			/* Init
 			-----------------------------------------------------------------------------------*/
@@ -637,6 +625,17 @@ var jsPlayer;
 				}
 			});
 
+			$media.addEventListener('mouseenter', function() {
+				if (!$player.classList.contains('video-player--show-controls')) {
+					$player.classList.add('video-player--show-controls');
+				}
+			});
+
+			$player.addEventListener('mouseleave', function() {
+				if ($player.classList.contains('video-player--show-controls')) {
+					$player.classList.remove('video-player--show-controls');
+				}
+			});
 
 			/* Full screen
 			-----------------------------------------------------------------------------------*/
@@ -667,13 +666,6 @@ var jsPlayer;
 			$media.addEventListener('contextmenu', function(e) {
 				e.preventDefault();
 			}, false);
-
-
-			/* Has mouse?
-			-----------------------------------------------------------------------------------*/
-
-			window.addEventListener('mousemove', isMouseAvailable, false);
-			window.addEventListener('touchstart', isMouseAvailable, false);
 		}
 	};
 }());

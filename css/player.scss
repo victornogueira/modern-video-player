@@ -48,7 +48,7 @@ body {
 
 /* The larger the value the larger the UI */
 $baseUIScale: 3em;
-$meterHeight: .5em;
+$meterHeight: .75em;
 $uiRadius: $meterHeight/2;
 $videoRadius: .1875em;
 
@@ -88,6 +88,7 @@ button {
 	overflow: hidden;
 	user-select: none;
 	-webkit-touch-callout: none;
+	-webkit-tap-highlight-color: transparent;
 }
 
 	.video-player__video {
@@ -113,13 +114,12 @@ button {
 	}
 
 	.video-player--first-play .video-player__controls,
-	.video-player--show-controls .video-player__controls,
-	.has-mouse .video-player:hover .video-player__controls {
+	.video-player--show-controls .video-player__controls {
 		opacity: 1;
 		pointer-events: auto;
 	}
 
-	.has-mouse .video-player--hide-controls:hover .video-player__controls {
+	.video-player--hide-controls .video-player__controls {
 		opacity: 0;
 		pointer-events: none;
 	}
